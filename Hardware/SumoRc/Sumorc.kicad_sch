@@ -3022,7 +3022,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EESTN5:to220"
+		(property "Footprint" "EESTN5:TO-220"
 			(at 77.47 29.845 0)
 			(effects
 				(font
