@@ -2,7 +2,7 @@
   (version 7)
   (lib (name "EESTN5")(type "KiCad")(uri "C:/Users/Estudiante/Desktop/SumoRc-Tucson/Librerias/Librerias-Kicad-master/EESTN5.pretty")(options "")(descr ""))
   (lib (name "RamLib")(type "KiCad")(uri "C:/Users/Estudiante/Desktop/SumoRc-Tucson/Librerias/RamLib")(options "")(descr ""))
-  (lib (name "Mini360_step-down")(type "KiCad")(uri "C:/Users/Estudiante/Desktop/SumoRc-Tucson/Librerias/Mini360_step_down_converter/Mini360_step-down.pretty")(options "")(descr ""))
+  (lib (name "Mini360_step-down")(type "KiCad")(uri "C:/Users/Estudiante/Desktop/SumoRc-Tucson/Librerias/Mini360_step_down_converter/Mini360_step-down.pretty")(options "")(descr "")(disabled))
   (lib (name "XT30UPB-M")(type "KiCad")(uri "C:/Users/Estudiante/Desktop/SumoRc-Tucson/Librerias/XT30UPB-M")(options "")(descr ""))
   (lib (name "XT60-M")(type "KiCad")(uri "C:/Users/Estudiante/Desktop/SumoRc-Tucson/Librerias/XT60-M")(options "")(descr ""))
 )
