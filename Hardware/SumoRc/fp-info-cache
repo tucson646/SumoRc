@@ -1,4 +1,4 @@
-25838570907408362
+25843912212724662
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -90482,6 +90482,13 @@ Through hole pin header THT 1x05 2.54mm single row
 5
 5
 RamLib
+5i
+
+
+0
+0
+0
+RamLib
 128x64OLED
 
 
@@ -93134,6 +93141,20 @@ esp32-s2-wrooom
 0
 63
 43
+RamLib
+go
+
+
+0
+0
+0
+RamLib
+goBI
+
+
+0
+0
+0
 RamLib
 hole_1mm
 Hole 1mm
