@@ -1,81 +1,108 @@
 #include <Bluepad32.h>
 
-// Puntero global para el mando
-GamepadPtr miMando = nullptr;
+const int M1_RPWM = 32;
+const int M1_LPWM = 33;
+const int M2_RPWM = 25;
+const int M2_LPWM = 26;
 
-// Función que se ejecuta automáticamente cuando el mando se conecta
-void onConnectedGamepad(GamepadPtr gp) {
-    if (miMando == nullptr) {
-        Serial.println("\n--------------------------------------------------");
-        Serial.println("¡¡CONEXIÓN EXITOSA!!");
-        Serial.print("Mando detectado: ");
-        Serial.println(gp->getModelName()); // Nos dirá si entró como Switch, Xbox, etc.
-        Serial.println("--------------------------------------------------");
-        miMando = gp;
-    }
-}
+const int M1_EN  = 27;
+const int M2_EN  = 14;
 
-// Función que se ejecuta automáticamente cuando el mando se desconecta
-void onDisconnectedGamepad(GamepadPtr gp) {
-    if (miMando == gp) {
-        Serial.println("\n--------------------------------------------------");
-        Serial.println("¡ALERTA: Mando desconectado del ESP32!");
-        Serial.println("--------------------------------------------------");
-        miMando = nullptr;
-    }
-}
+const int PWM_50 = 127; 
+const int PWM_70 = 178; 
+const int PWM_90 = 229;
 
-void setup() {
-  // Inicializar puerto serie a 115200 baudios
-  Serial.begin(115200);
-  while (!Serial) {
-    ; // Esperar a que el monitor serie se abra
-  }
+const int led = 2;
 
-  Serial.println("\n=== INICIANDO PRUEBA DE JOYSTICK (v4.1.0) ===");
+int PWMactual = PWM_50;
+bool botonbloqueo = false;
 
-  // Configurar Bluepad32 con las funciones de conexión
-  BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
-  
-  // Limpia cualquier emparejamiento previo para forzar una sincronización limpia
-  BP32.forgetBluetoothKeys(); 
 
-  Serial.println("ESP32 listo y buscando Bluetooth...");
-  Serial.println("👉 Pon tu GameSir en modo emparejamiento (Prueba con Y + HOME).");
+void setup(){
+
 }
 
 void loop() {
-  // OBLIGATORIO: Actualiza el motor de Bluepad32 en cada ciclo
   BP32.update();
 
-  // Si el mando está conectado, leemos sus valores y los mandamos a la terminal
-  if (miMando != nullptr && miMando->isConnected()) {
+  //joystick desconectado
+  if (miMando == nullptr) {
+    detenerMotores();
     
-    // 1. Leer Joysticks (Rango de -512 a 511)
-    int joyIzquierdoY = miMando->axisY();  // Eje vertical izquierdo
-    int joyDerechoY   = miMando->axisRY(); // Eje vertical derecho
+   unsigned long tiempoActual = millis();
+    if (tiempoActual - tiempoAnteriorLed >= 200) { 
+      tiempoAnteriorLed = tiempoActual;
+      estadoLed = !estadoLed;
+      digitalWrite(LED_PIN, estadoLed);
+    }
+    return; 
+  }
 
-    // 2. Leer Botones (Usamos máscaras de bits directas para evitar errores de nombres)
+  //joystick conectado
+  if (miMando->isConnected()) {
+    digitalWrite(LED_PIN, HIGH); 
+    
+    digitalWrite(M1_EN, HIGH);
+    digitalWrite(M2_EN, HIGH);
+    
+    //cambiar pwm con R1
     uint16_t botones = miMando->buttons();
-    
-    // En Bluepad32 v4, el bit 0x0002 corresponde siempre al botón superior derecho (R1 / RB)
-    bool botonR1_Presionado = (botones & 0x0002); 
 
-    // 3. Imprimir en el Monitor Serie de forma ordenada
-    Serial.print("Eje Y Izq: ");
-    Serial.print(joyIzquierdoY);
-    
-    Serial.print("\t | Eje Y Der: ");
-    Serial.print(joyDerechoY);
-    
-    Serial.print("\t | Botón R1/RB: ");
-    if (botonR1_Presionado) {
-      Serial.println("🟢 PRESIONADO");
+    if (botones & 0x0002) { //r1
+      if (!botonBloqueo) { 
+        botonBloqueo = true; 
+        
+        if (PWMactual == PWM_50) { 
+          PWMactual = PWM_70; 
+        }
+        else if (PWMactual == PWM_70) { 
+          PWMactual = PWM_90; 
+        }
+        else { 
+          PWMactual = PWM_50; 
+        }
+      }
     } else {
-      Serial.println("❌ SUELTO");
+      botonBloqueo = false; 
     }
 
-    // Retraso de 100ms para que la terminal sea legible y no vaya a toda velocidad
-    delay(100); 
+    // --- CONTROL DE MOTORES ---
+    int joystickIzquierdoY = -miMando->axisY();  
+    int joystickDerechoY   = -miMando->axisRY(); 
+
+    procesarmotor(joystickIzquierdoY, M1_RPWM, M1_LPWM);
+    procesarMotor(joystickDerechoY, M2_RPWM, M2_LPWM);
+
+    delay(10); 
+  } else {
+    detenerMotores();
   }
+}
+
+void procesarMotor(int valorJoystick, int pinRPWM, int pinLPWM) {
+  if (abs(valorJoystick) < 50) {
+    analogWrite(pinRPWM, 0);
+    analogWrite(pinLPWM, 0);
+    return;
+  }
+
+  int pwmCalculado = map(abs(valorJoystick), 50, 511, 0, PWMactual);
+
+  if (valorJoystick > 0) { 
+    analogWrite(pinRPWM, pwmCalculado);
+    analogWrite(pinLPWM, 0);
+  } else { 
+    analogWrite(pinRPWM, 0);
+    analogWrite(pinLPWM, pwmCalculado);
+  }
+}
+
+void detenerMotores() {
+  analogWrite(M1_RPWM, 0);
+  analogWrite(M1_LPWM, 0);
+  analogWrite(M2_RPWM, 0);
+  analogWrite(M2_LPWM, 0);
+  
+  digitalWrite(M1_EN, LOW);
+  digitalWrite(M2_EN, LOW);
 }
