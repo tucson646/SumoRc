@@ -17,7 +17,6 @@ const int led = 2;
 int PWMactual = PWM_50;
 bool botonbloqueo = false;
 
-
 void setup(){
 
 }
@@ -25,22 +24,9 @@ void setup(){
 void loop() {
   BP32.update();
 
-  //joystick desconectado
-  if (miMando == nullptr) {
-    detenerMotores();
-    
-   unsigned long tiempoActual = millis();
-    if (tiempoActual - tiempoAnteriorLed >= 200) { 
-      tiempoAnteriorLed = tiempoActual;
-      estadoLed = !estadoLed;
-      digitalWrite(LED_PIN, estadoLed);
-    }
-    return; 
-  }
-
   //joystick conectado
   if (miMando->isConnected()) {
-    digitalWrite(LED_PIN, HIGH); 
+    digitalWrite(led, HIGH); 
     
     digitalWrite(M1_EN, HIGH);
     digitalWrite(M2_EN, HIGH);
